@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from Parser import parse
-from Core import is_basic_operand, get_super, differentiate, is_prime, factor
+from Core import *
 
 class Calculator:
     def __init__(self):
@@ -109,7 +109,7 @@ class Calculator:
                                          width=self.MAIN_KEY_WIDTH, height=self.MAIN_KEY_HEIGHT)
         self.button_exponent.grid(row=6, column=0)
 
-        self.button_prime = tk.Button(self.main, text="Prime", command=lambda: self.main_to_prime(),
+        self.button_prime = tk.Button(self.main, text="Other fncts", command=lambda: self.main_to_prime(),
                                       width=self.MAIN_KEY_WIDTH, height=self.MAIN_KEY_HEIGHT)
         self.button_prime.grid(row=6, column=1)
 
@@ -168,15 +168,16 @@ class Calculator:
         self.go_derive = tk.Button(self.graphing, text="Derive", command=lambda: self.derive(), width=self.GRAPHING_KEY_WIDTH, height=self.GRAPHING_KEY_HEIGHT)
         self.go_derive.grid(row=1, column=2, columnspan=2)
 
-        # Set up buttons for prime/factorization frame
-        self.label_1 = tk.Label(self.prime, text="Calculate the ")
-        self.label_1.grid(row=0, column=0)
+        # Add a back butotn in the botton right corner
+        self.back_button = tk.Button(self.graphing, text="Back", command=lambda: self.graphing_to_main(), width=self.GRAPHING_KEY_WIDTH, height=self.GRAPHING_KEY_HEIGHT)
+        self.back_button.grid(row=1, column=10, columnspan=2)
 
-        self.prime_or_factor = ttk.Combobox(self.prime, values=["Prime", "Factorization"], width=12)
-        self.prime_or_factor.grid(row=0, column=1, sticky="W")
+        # Set up buttons for extra functions
+        self.prime_or_factor = ttk.Combobox(self.prime, values=["Prime testing", "Factors", "Factorial"], width=12)
+        self.prime_or_factor.grid(row=0, column=1)
 
         self.label_2 = tk.Label(self.prime, text=" of ")
-        self.label_2.grid(row=0, column=2)
+        self.label_2.grid(row=0, column=2, sticky="W")
 
         self.pf_num = tk.StringVar()
         self.pf_num_box = tk.Entry(self.prime, textvariable=self.pf_num, width=4)
@@ -184,6 +185,9 @@ class Calculator:
 
         self.go_button = tk.Button(self.prime, text="Go", command=lambda: self.go_prime(), width=self.GRAPHING_KEY_WIDTH, height=self.GRAPHING_KEY_HEIGHT)
         self.go_button.grid(row=0, column=4, columnspan=4)
+
+        self.prime_back_button = tk.Button(self.prime, text="Back", command=lambda: self.prime_to_main(), width=self.GRAPHING_KEY_WIDTH, height=self.GRAPHING_KEY_HEIGHT)
+        self.prime_back_button.grid(row=1, column=4, columnspan=4)
 
         self.label_3 = tk.Label(self.prime, text="Result: ")
         self.label_3.grid(row=1, column=0)
@@ -233,9 +237,17 @@ class Calculator:
         self.main.pack_forget()
         self.graphing.pack()
 
+    def graphing_to_main(self):
+        self.graphing.pack_forget()
+        self.main.pack()
+
     def main_to_prime(self):
         self.main.pack_forget()
         self.prime.pack()
+
+    def prime_to_main(self):
+        self.prime.pack_forget()
+        self.main.pack()
 
     def graphing_symbol_change(self, *args):
         self.sym3.config(text=self.symbol.get() + "³")
@@ -347,12 +359,16 @@ class Calculator:
     def go_prime(self):
         print(5)
         num = float(self.pf_num.get())
-        if self.prime_or_factor.get() == "Prime":
+        if self.prime_or_factor.get() == "Prime testing":
             res = is_prime(num)
             self.label_3.config(text=f"Result: {res}")
-        else:
+        elif self.prime_or_factor.get() == "Factors":
             factors = factor(num)
             self.label_3.config(text=f"Result: {factors}")
+        elif self.prime_or_factor.get() == "Factorial":
+            res = factorial(num)
+            self.label_3.config(text=f"Result: {res}")
+
 
 
 
