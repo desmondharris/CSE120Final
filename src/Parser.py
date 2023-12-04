@@ -60,7 +60,8 @@ def lex(expression: str):
     return tokens
 
 
-
+# This parser is recursive. It starts by gathering any expressions enclosed in parentheses, then evaluates them.
+# It then evaluates the rest of the expressions according to PEMDAS.
 def parse(expression: str, tokens: list = None):
     if not tokens:
         tokens = lex(expression)
@@ -99,6 +100,8 @@ def parse(expression: str, tokens: list = None):
         elif not opening:
             self_tokens.append(token)
 
+    # We need an iterator object so we can call next() on it
+    # Where there are FILL tokens, we replace them with the next expression in the list of recursive parse() calls
     exp_iter = iter(list_exp)
     for i, token in enumerate(self_tokens):
         if token == "FILL":
@@ -136,3 +139,6 @@ def parse(expression: str, tokens: list = None):
                 del self_tokens[i - 1:i + 2]
                 self_tokens.insert(i-1, rep)
     return self_tokens
+
+
+
