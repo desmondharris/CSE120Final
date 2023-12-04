@@ -3,22 +3,33 @@ import logging
 
 
 def lex(expression: str):
+    '''
+    Converts a string expression into a list of tokens
+    :param expression: string fetched from Calculator
+    :return: list of all legal tokens in expression
+    '''
+
     temp = ""
     tokens = []
     decimal = False
 
     for i in range(len(expression)-1):
+
         l = expression[i]
+
         if l.isdigit():
+            # Check if the first number is multi-digit or a decimal
             if expression[i+1].isdigit() or temp or expression[i+1] == '.':
                 temp += l
                 continue
             tokens.append(float(l))
+
         elif is_basic_operand(l):
             if temp:
                 temp = float(temp)
                 tokens.append(temp)
                 temp = ""
+                # We know any decimal is finished
                 decimal = False
             tokens.append(l)
         elif l == '.':
@@ -30,12 +41,14 @@ def lex(expression: str):
         else:
             logging.warning(f"Unknown character '{l}'")
 
+
     if expression[-1].isdigit():
-        # Check if the last two characters are a two digit number
+        # Check if the last two characters are a two-digit number
         if expression[-2].isdigit() or expression[-2] == '.':
-            #tokens.pop()
+            # If it's a decimal, we've already started building temp
             if decimal:
                 tokens.append(float(temp + expression[-1]))
+            # If not, we can ignore temp
             else:
                 tokens.append(float(expression[-2:]))
         else:
@@ -47,13 +60,7 @@ def lex(expression: str):
     return tokens
 
 
-'''
-Follow PEMDAS rules.
-First, find the outermost parentheses, and evaluate function inside of it using a recursive call to parse.
-Then, find the outermost exponent, and evaluate it, using a recursive call to parse if needed.
-Then, find the outermost multiplication or division, and evaluate it, using a recursive call to parse if needed.
-Then, find the outermost addition or subtraction, and evaluate it, using a recursive call to parse if needed.
-'''
+
 def parse(expression: str, tokens: list = None):
     if not tokens:
         tokens = lex(expression)
@@ -129,5 +136,3 @@ def parse(expression: str, tokens: list = None):
                 del self_tokens[i - 1:i + 2]
                 self_tokens.insert(i-1, rep)
     return self_tokens
-
-print(lex("21 + 1.1"))
