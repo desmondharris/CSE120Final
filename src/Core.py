@@ -26,7 +26,7 @@ def factorial(x):
 
 
 def is_prime(n):
-    for i in range(2, n):
+    for i in range(2, int(n)):
         if (n % i) == 0:
             return False
     return True
@@ -49,6 +49,18 @@ def differentiate(polynomial, symbol):
     deriv = deriv + f" + {c2}{symbol}" if polynomial["c2"] != 0 else deriv
     deriv = deriv + f" + {polynomial['c1']}" if polynomial["c1"] != 0 else deriv
     return deriv
+
+
+def factor(n, num_factors=20):
+    found = 0
+    factors = []
+    for i in range(n):
+        if n % i == 0:
+            factors.append(i)
+            found += 1
+            if found == num_factors:
+                return factors
+
 
 
 
