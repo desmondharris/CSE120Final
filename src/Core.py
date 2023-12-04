@@ -52,14 +52,16 @@ def differentiate(polynomial, symbol):
 
 
 def factor(n, num_factors=20):
+
     found = 0
     factors = []
-    for i in range(n):
+    for i in range(1, int(n)):
         if n % i == 0:
             factors.append(i)
             found += 1
             if found == num_factors:
                 return factors
+    return factors
 
 
 
