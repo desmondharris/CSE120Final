@@ -1,22 +1,7 @@
 import tkinter as tk
-
 from tkinter import ttk
 from Parser import parse
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-matplotlib.use('TkAgg')
-
-
-# function to convert to superscript taken from https://www.geeksforgeeks.org/python-convert-string-to-superscript/
-# NOT written by students
-def get_super(x):
-    normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-=()"
-    super_s = "ᴬᴮᶜᴰᴱᶠᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾQᴿˢᵀᵁⱽᵂˣʸᶻᵃᵇᶜᵈᵉᶠᵍʰᶦʲᵏˡᵐⁿᵒᵖ۹ʳˢᵗᵘᵛʷˣʸᶻ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾"
-    res = x.maketrans(''.join(normal), ''.join(super_s))
-    return x.translate(res)
-
+from Core import is_basic_operand, get_super, differentiate
 
 class Calculator:
     def __init__(self):
@@ -138,6 +123,7 @@ class Calculator:
         self.function_cont.grid(row=0, column=2)
 
         self.c3 = tk.StringVar()
+        self.c3.set("0")
         self.c3_box = tk.Entry(self.graphing, textvariable=self.c3, width=4)
         self.c3_box.grid(row=0, column=3)
         self.sym3 = tk.Label(self.graphing, text="x³")
@@ -147,6 +133,7 @@ class Calculator:
         self.f3t2.grid(row=0, column=5, padx=5)
 
         self.c2 = tk.StringVar()
+        self.c2.set("0")
         self.c2_box = tk.Entry(self.graphing, textvariable=self.c2, width=4)
         self.c2_box.grid(row=0, column=6)
         self.sym2 = tk.Label(self.graphing, text="x²")
@@ -156,6 +143,7 @@ class Calculator:
         self.f2t1.grid(row=0, column=8, padx=5)
 
         self.c1 = tk.StringVar()
+        self.c1.set("0")
         self.c1_box = tk.Entry(self.graphing, textvariable=self.c1, width=4)
         self.c1_box.grid(row=0, column=9)
         self.sym1 = tk.Label(self.graphing, text="x")
@@ -168,9 +156,31 @@ class Calculator:
         self.c0_box = tk.Entry(self.graphing, textvariable=self.c0, width=1)
         self.c0_box.grid(row=0, column=12)
 
+        self.go_graph = tk.Button(self.graphing, text="Graph", command=lambda: self.graph(0, 25, 100), width=self.GRAPHING_KEY_WIDTH, height=self.GRAPHING_KEY_HEIGHT)
+        self.go_graph.grid(row=1, column=0, columnspan=2)
+
+        self.go_derive = tk.Button(self.graphing, text="Derive", command=lambda: self.derive(), width=self.GRAPHING_KEY_WIDTH, height=self.GRAPHING_KEY_HEIGHT)
+        self.go_derive.grid(row=1, column=2, columnspan=2)
+
+        # OTHER
+        self.other_fr = tk.Frame(self.other)
+        self.label1 = tk.Label(self.other, text="Other")
+        self.label1.grid(row=0, column=0)
+
+
+
+
+
         # Trace certain values to trigger callback functions when changed
         self.symbol.trace("w", self.graphing_symbol_change)
-        self.c3.trace("w", self.graphing_fctn_change)
+        self.c3.trace("w", lambda sel, widg, *args: self.graphing_fctn_change("c3"))
+        self.c2.trace("w", lambda sel, widg, *args: self.graphing_fctn_change("c2"))
+        self.c1.trace("w", lambda sel, widg, *args: self.graphing_fctn_change("c1"))
+        self.c0.trace("w", lambda sel, widg, *args: self.graphing_fctn_change("c0"))
+        self.f3t2.bind("<<ComboboxSelected>>", lambda sel, *args: self.graphing_fctn_change("f3t2"))
+        self.f2t1.bind("<<ComboboxSelected>>", lambda sel, *args: self.graphing_fctn_change("f2t1"))
+        self.f1t0.bind("<<ComboboxSelected>>", lambda sel, *args: self.graphing_fctn_change("f1t0"))
+
 
     def press(self, num):
         self.expression = self.expression + str(num)
@@ -204,19 +214,26 @@ class Calculator:
         self.main.pack_forget()
         self.graphing.pack()
 
+    def main_to_other(self):
+        self.main.pack_forget()
+        self.other.pack()
+
     def graphing_symbol_change(self, *args):
         self.sym3.config(text=self.symbol.get() + "³")
         self.sym2.config(text=self.symbol.get() + "²")
         self.sym1.config(text=self.symbol.get())
 
-    def graphing_fctn_change(self, *args):
-        self.graphing_dict["c3"] = float(self.c3.get())
-        self.graphing_dict["c2"] = float(self.c2.get())
-        self.graphing_dict["c1"] = float(self.c1.get())
-        self.graphing_dict["c0"] = float(self.c0.get())
-        self.graphing_dict["f3t2"] = self.f3t2.get()
-        self.graphing_dict["f2t1"] = self.f2t1.get()
-        self.graphing_dict["f1t0"] = self.f1t0.get()
+    def graphing_fctn_change(self, button, *args):
+        try:
+            if len(button) == 2:
+                self.graphing_dict[button] = float(eval("self." + button).get())
+            elif len(button) == 4:
+                self.graphing_dict[button] = eval("self." + button).get()
+        except ValueError:
+            # When removing a value from a box, it will throw a ValueError
+            # This is fine, we just want to allow the user to enter a non-zero value
+            pass
+
 
     def c3_change(self, *args):
         pass
@@ -226,12 +243,94 @@ class Calculator:
         self.main.pack(fill=tk.BOTH, expand=True)
         self.root.mainloop()
 
-    def latex_graph(self):
-        # self.graphing_ltx = expression
-        pass
+    def f(self, x):
+        running = 0
+
+        if self.graphing_dict["c3"]:
+            running += self.graphing_dict["c3"] * x ** 3
+
+        if self.graphing_dict["c2"]:
+            if self.graphing_dict["f3t2"] == "+":
+                running += self.graphing_dict["c2"] * x ** 2
+            else:
+                running -= self.graphing_dict["c2"] * x ** 2
+
+        if self.graphing_dict["c1"]:
+            if self.graphing_dict["f2t1"] == "+":
+                running += self.graphing_dict["c1"] * x
+            else:
+                running -= self.graphing_dict["c1"] * x
+
+        if self.graphing_dict["c0"]:
+            if self.graphing_dict["f1t0"] == "+":
+                running += self.graphing_dict["c0"]
+            else:
+                running -= self.graphing_dict["c0"]
+        return running
+
+    def graph(self, start, stop, num_points, title=f"f(x)"):
+        import numpy as np
+
+        import matplotlib.pyplot as plt
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        from tkinter import Tk, Toplevel
+
+        # Create a figure and an axis
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+
+        # Generate some data
+        x = np.linspace(start, stop, num_points)
+        x = [int(i) for i in x]
+        y = [self.f(i) for i in x]
+
+        # Plot the data
+        ax.plot(x, y)
+
+        # Create a new window to display the plot
+        top = Toplevel(self.root)
+        top.title("Plot Window")
+
+        # Create a canvas to display the plot
+        canvas = FigureCanvasTkAgg(fig, master=top)
+        canvas.draw()
+
+        # Pack the canvas into the new window
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+        # Create a back button
+        back_button = tk.Button(top, text="Back", command=lambda: top.destroy())
+        back_button.pack(side=tk.BOTTOM, fill=tk.X)
+
+        # Pack the canvas into the frame
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+        # Start the Tkinter event loop
+        top.mainloop()
+
+    def derive(self):
+        import matplotlib.pyplot as plt
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        from tkinter import Tk, Toplevel
+
+        deriv = differentiate(self.graphing_dict, self.symbol.get())
+
+        # Create a new window to display the derivative
+        top = Toplevel(self.root)
+        top.title("Derivative Window")
+
+        # Create a back button
+        back_button = tk.Button(top, text="Back", command=lambda: top.destroy())
+        back_button.pack(side=tk.BOTTOM, fill=tk.X)
+
+        # Create a display to display the derivative
+        display = tk.Label(top, width=50)
+        display.config(text=deriv)
+        display.pack(side=tk.TOP, fill=tk.X)
+
+
 
 
 if __name__ == "__main__":
     calc = Calculator()
     calc.start()
-
