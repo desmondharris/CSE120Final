@@ -162,10 +162,7 @@ class Calculator:
         self.go_derive = tk.Button(self.graphing, text="Derive", command=lambda: self.derive(), width=self.GRAPHING_KEY_WIDTH, height=self.GRAPHING_KEY_HEIGHT)
         self.go_derive.grid(row=1, column=2, columnspan=2)
 
-        # OTHER
-        self.other_fr = tk.Frame(self.other)
-        self.label1 = tk.Label(self.other, text="Other")
-        self.label1.grid(row=0, column=0)
+
 
 
 
@@ -213,10 +210,6 @@ class Calculator:
     def main_to_graphing(self):
         self.main.pack_forget()
         self.graphing.pack()
-
-    def main_to_other(self):
-        self.main.pack_forget()
-        self.other.pack()
 
     def graphing_symbol_change(self, *args):
         self.sym3.config(text=self.symbol.get() + "³")
